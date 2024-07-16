@@ -7,10 +7,13 @@ const CardNumber = () => {
     const [activeFocus, setActiveFocus] = useState<string | null>(null);
 //    const [tmpCislo, setTmpCislo] = useState<number>(0);
 
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
     const inputRef1 = useRef<HTMLInputElement>(null!);
     const inputRef2 = useRef<HTMLInputElement>(null!);
     const inputRef3 = useRef<HTMLInputElement>(null!);
     const inputRef4 = useRef<HTMLInputElement>(null!);
+
     const buttonRef5 = useRef<HTMLButtonElement>(null!);
 
 
@@ -20,26 +23,16 @@ const CardNumber = () => {
             buttonRef5.current.focus();
             return;
         }
-        if (numberActiveInput === 1 && (document.activeElement !== inputRef1.current)) {
-            inputRef1.current?.focus();
-        }
-        if (numberActiveInput === 2 && (document.activeElement !== inputRef2.current)) {
-            inputRef2.current?.focus();
-        }
-        if (numberActiveInput === 3 && (document.activeElement !== inputRef3.current)) {
-            inputRef3.current?.focus();
-        }
-        if (numberActiveInput === 4 && (document.activeElement !== inputRef4.current)) {
-            inputRef4.current?.focus();
-        }
+        inputRefs.current[numberActiveInput - 1]?.focus();
+
     },[numberActiveInput]);
 
     /** Hlida, delku vlozeneho cisla */
-    const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
         if (numberActiveInput === 5) {
             return;
         }
-        if (e.target.value.length === 4) {
+        if ((e.target.value.length === 4) && (index < 4)) {
             setNumberActiveInput(oldNumber => oldNumber+1)
             if (cislo.length >= numberActiveInput) {
                 setCislo(oldCislo => { 
@@ -49,7 +42,6 @@ const CardNumber = () => {
                 });
 //                setTmpCislo(0);
             }
-//            console.log(cislo);
         }
     }
 
@@ -115,7 +107,9 @@ const CardNumber = () => {
         // });
         
         alert('Odeslané číslo karty je: ' + cislo[0] + ' ' + cislo[1] + ' ' + cislo[2] + ' ' + cislo[3]);
-        inputRef1.current.focus();
+        if (inputRefs.current !== null ) {
+            inputRefs.current[0]?.focus();
+        }
         window.location.reload();
 //        setTmpCislo(0);
     };
@@ -130,42 +124,18 @@ const CardNumber = () => {
         <div className='block-row'>
             <label className="label">Zadejte číslo karty</label>
             <div className="input-row">
-                <input 
-                    type="text" 
-                    name='cisla1' 
-                    placeholder='1234' 
-                    ref={inputRef1} 
-                    onChange={handleChangeInput} 
-                    onKeyDown={() => handleKeyDown} 
-                    maxLength={4}
-                />
-                <input 
-                    type="text" 
-                    name='cisla2' 
-                    placeholder='1234' 
-                    ref={inputRef2} 
-                    onChange={handleChangeInput} 
-                    onKeyDown={() => handleKeyDown} 
-                    maxLength={4}
-                />
-                <input 
-                    type="text" 
-                    name='cisla3' 
-                    placeholder='1234' 
-                    ref={inputRef3} 
-                    onChange={handleChangeInput} 
-                    onKeyDown={() => handleKeyDown} 
-                    maxLength={4}
-                />
-                <input 
-                    type="text" 
-                    name='cisla4' 
-                    placeholder='1234' 
-                    ref={inputRef4} 
-                    onChange={handleChangeInput} 
-                    onKeyDown={() => handleKeyDown} 
-                    maxLength={4}
-                />
+                {Array.from({ length: 4 }).map((_, index) => (
+                    <input
+                        key={index}
+                        type="text"
+                        name={`cisla${index + 1}`}
+                        placeholder="1234"
+                        ref={(el) => (inputRefs.current[index] = el)}
+                        onChange={(e) => handleChangeInput(e, index)}
+                        onKeyDown={(e) => handleKeyDown(e as unknown as KeyboardEvent)}
+                        maxLength={4}
+                    />
+                ))}   
                 <button className='button-design' ref={buttonRef5} onClick={handleSubmit}> Odeslat</button>
                 <button className='button-design' onClick={handleReset}> Vymazat</button>
             </div>
